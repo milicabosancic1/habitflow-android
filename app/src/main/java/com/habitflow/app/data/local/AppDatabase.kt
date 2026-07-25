@@ -14,7 +14,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         AchievementEntity::class,
         UserEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -32,5 +32,11 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
                 "`displayName` TEXT NOT NULL, `identityStatement` TEXT, `createdAt` INTEGER NOT NULL, " +
                 "PRIMARY KEY(`id`))"
         )
+    }
+}
+
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE recommendations ADD COLUMN category TEXT")
     }
 }

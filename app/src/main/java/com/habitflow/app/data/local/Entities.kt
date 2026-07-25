@@ -43,6 +43,7 @@ data class RecommendationEntity(
     @PrimaryKey val id: String,
     val userId: String,
     val habitId: String? = null,
+    val category: String? = null,
     val type: RecommendationType,
     val message: String,
     val createdAt: Long,
