@@ -19,6 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.habitflow.app.data.local.HabitEntity
 import com.habitflow.app.ui.common.DayProgressRing
 import com.habitflow.app.ui.common.EmptyState
+import com.habitflow.app.ui.common.RecommendationCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,6 +62,17 @@ fun HomeScreen(
                             total = state.totalCount
                         )
                     }
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+
+            val topRecommendation = state.topRecommendation
+            if (topRecommendation != null) {
+                item {
+                    RecommendationCard(
+                        recommendation = topRecommendation,
+                        onDismiss = { viewModel.dismissRecommendation(topRecommendation.id) }
+                    )
                     Spacer(Modifier.height(8.dp))
                 }
             }
