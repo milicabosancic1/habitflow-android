@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Zaobljena kvačica kao simbol završene navike -->
+    <path
+        android:fillColor="#E8A87C"
+        android:pathData="M40,70 l-14,-14 a4,4 0 0 1 5.6,-5.6 l8.4,8.4 l22,-22 a4,4 0 0 1 5.6,5.6 l-27.6,27.6 a4,4 0 0 1 -5.6,0 z" />
+    <!-- Tri tačkice kao 'lista navika' -->
+    <path
+        android:fillColor="#FBF9F5"
+        android:pathData="M34,44 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+</vector>
