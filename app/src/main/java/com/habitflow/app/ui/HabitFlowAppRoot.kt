@@ -11,6 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -22,6 +24,7 @@ import com.habitflow.app.ui.auth.RegisterScreen
 import com.habitflow.app.ui.habit.CreateHabitScreen
 import com.habitflow.app.ui.habit.HabitDetailScreen
 import com.habitflow.app.ui.home.HomeScreen
+import com.habitflow.app.ui.onboarding.OnboardingScreen
 import com.habitflow.app.ui.profile.ProfileScreen
 import com.habitflow.app.ui.stats.RecommendationsScreen
 import com.habitflow.app.ui.stats.StatsScreen
@@ -36,7 +39,14 @@ sealed class Dest(val route: String, val label: String, val icon: ImageVector) {
 private val bottomItems = listOf(Dest.Home, Dest.Stats, Dest.Recs, Dest.Profile)
 
 @Composable
-fun HabitFlowAppRoot() {
+fun HabitFlowAppRoot(gateViewModel: AppGateViewModel = hiltViewModel()) {
+    val hasOnboarded by gateViewModel.hasOnboarded.collectAsStateWithLifecycle()
+
+    if (!hasOnboarded) {
+        OnboardingScreen()
+        return
+    }
+
     val navController = rememberNavController()
 
     Scaffold(

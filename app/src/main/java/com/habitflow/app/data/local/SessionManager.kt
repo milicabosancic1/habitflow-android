@@ -24,6 +24,8 @@ class SessionManager @Inject constructor(@ApplicationContext context: Context) {
         private const val KEY_REFRESH_TOKEN = "refresh_token"
         private const val KEY_USER_ID = "user_id"
         private const val KEY_LAST_SYNC = "last_sync_time"
+        private const val KEY_HAS_ONBOARDED = "has_onboarded"
+        private const val KEY_IDENTITY_STATEMENT = "identity_statement"
     }
 
     private val prefs: SharedPreferences = EncryptedSharedPreferences.create(
@@ -45,6 +47,18 @@ class SessionManager @Inject constructor(@ApplicationContext context: Context) {
     var lastSyncTime: Long
         get() = prefs.getLong(KEY_LAST_SYNC, 0L)
         set(value) { prefs.edit().putLong(KEY_LAST_SYNC, value).apply() }
+
+    var identityStatement: String?
+        get() = prefs.getString(KEY_IDENTITY_STATEMENT, null)
+        set(value) { prefs.edit().putString(KEY_IDENTITY_STATEMENT, value).apply() }
+
+    private val _hasOnboardedFlow = MutableStateFlow(prefs.getBoolean(KEY_HAS_ONBOARDED, false))
+    val hasOnboardedFlow: StateFlow<Boolean> = _hasOnboardedFlow.asStateFlow()
+
+    fun setOnboarded() {
+        prefs.edit().putBoolean(KEY_HAS_ONBOARDED, true).apply()
+        _hasOnboardedFlow.value = true
+    }
 
     fun saveSession(token: String, refreshToken: String, userId: String) {
         prefs.edit()
