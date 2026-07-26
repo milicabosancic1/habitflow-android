@@ -18,7 +18,8 @@ import javax.inject.Inject
 data class ProfileUiState(
     val user: UserEntity? = null,
     val lastSyncTime: Long = 0L,
-    val syncing: Boolean = false
+    val syncing: Boolean = false,
+    val syncError: String? = null
 )
 
 @HiltViewModel
@@ -30,10 +31,13 @@ class ProfileViewModel @Inject constructor(
 
     private val _syncing = MutableStateFlow(false)
     private val _lastSyncTime = MutableStateFlow(sessionManager.lastSyncTime)
+    private val _syncError = MutableStateFlow<String?>(null)
 
     val uiState: StateFlow<ProfileUiState> =
-        combine(authRepository.observeCurrentUser(), _syncing, _lastSyncTime) { user, syncing, lastSync ->
-            ProfileUiState(user = user, lastSyncTime = lastSync, syncing = syncing)
+        combine(
+            authRepository.observeCurrentUser(), _syncing, _lastSyncTime, _syncError
+        ) { user, syncing, lastSync, syncError ->
+            ProfileUiState(user = user, lastSyncTime = lastSync, syncing = syncing, syncError = syncError)
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -43,11 +47,17 @@ class ProfileViewModel @Inject constructor(
     fun syncNow() {
         if (_syncing.value) return
         _syncing.value = true
+        _syncError.value = null
         viewModelScope.launch {
             syncManager.sync()
-            _lastSyncTime.value = sessionManager.lastSyncTime
+                .onSuccess { _lastSyncTime.value = sessionManager.lastSyncTime }
+                .onFailure { _syncError.value = "Sinhronizacija nije uspela. Proveri internet konekciju." }
             _syncing.value = false
         }
+    }
+
+    fun dismissSyncError() {
+        _syncError.value = null
     }
 
     fun logout() {

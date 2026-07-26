@@ -68,6 +68,9 @@ fun ProfileScreen(
                             "Poslednja sinhronizacija: ${formatSyncTime(state.lastSyncTime)}",
                             style = MaterialTheme.typography.bodyMedium
                         )
+                        if (state.syncError != null) {
+                            Text(state.syncError!!, color = MaterialTheme.colorScheme.error)
+                        }
                         Button(
                             onClick = viewModel::syncNow,
                             enabled = !state.syncing,
