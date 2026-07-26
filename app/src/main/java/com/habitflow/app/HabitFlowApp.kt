@@ -10,6 +10,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.habitflow.app.achievement.AchievementWorker
 import com.habitflow.app.recommendation.RecommendationWorker
 import com.habitflow.app.sync.SyncWorker
 import dagger.hilt.android.HiltAndroidApp
@@ -32,6 +33,7 @@ class HabitFlowApp : Application(), Configuration.Provider {
         WorkManager.initialize(this, workManagerConfiguration)
         scheduleSync()
         scheduleRecommendations()
+        scheduleAchievements()
     }
 
     private fun scheduleSync() {
@@ -65,6 +67,21 @@ class HabitFlowApp : Application(), Configuration.Provider {
             "recommendations-periodic",
             ExistingPeriodicWorkPolicy.KEEP,
             PeriodicWorkRequestBuilder<RecommendationWorker>(24, TimeUnit.HOURS).build()
+        )
+    }
+
+    private fun scheduleAchievements() {
+        val workManager = WorkManager.getInstance(this)
+
+        workManager.enqueueUniqueWork(
+            "achievements-on-launch",
+            ExistingWorkPolicy.KEEP,
+            OneTimeWorkRequestBuilder<AchievementWorker>().build()
+        )
+        workManager.enqueueUniquePeriodicWork(
+            "achievements-periodic",
+            ExistingPeriodicWorkPolicy.KEEP,
+            PeriodicWorkRequestBuilder<AchievementWorker>(24, TimeUnit.HOURS).build()
         )
     }
 }
