@@ -16,6 +16,7 @@ import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.column.columnChart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.chart.line.lineSpec
+import com.patrykandpatrick.vico.compose.component.lineComponent
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
@@ -58,9 +59,10 @@ fun CategoryStatChart(stats: List<CategoryStat>, modifier: Modifier = Modifier) 
     val bottomFormatter = remember(labels) {
         AxisValueFormatter<AxisPosition.Horizontal.Bottom> { value, _ -> labels.getOrElse(value.toInt()) { "" } }
     }
+    val barColor = MaterialTheme.colorScheme.primary
 
     Chart(
-        chart = columnChart(),
+        chart = columnChart(columns = listOf(lineComponent(color = barColor, thickness = 16.dp))),
         chartModelProducer = modelProducer,
         startAxis = rememberStartAxis(),
         bottomAxis = rememberBottomAxis(valueFormatter = bottomFormatter),
