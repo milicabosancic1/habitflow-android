@@ -23,6 +23,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun habitEntryDao(): HabitEntryDao
     abstract fun recommendationDao(): RecommendationDao
     abstract fun userDao(): UserDao
+    abstract fun achievementDao(): AchievementDao
 }
 
 val MIGRATION_1_2 = object : Migration(1, 2) {

@@ -2,6 +2,7 @@ package com.habitflow.app.di
 
 import android.content.Context
 import androidx.room.Room
+import com.habitflow.app.data.local.AchievementDao
 import com.habitflow.app.data.local.AppDatabase
 import com.habitflow.app.data.local.HabitDao
 import com.habitflow.app.data.local.HabitEntryDao
@@ -32,4 +33,5 @@ object DatabaseModule {
     @Provides fun provideEntryDao(db: AppDatabase): HabitEntryDao = db.habitEntryDao()
     @Provides fun provideRecommendationDao(db: AppDatabase): RecommendationDao = db.recommendationDao()
     @Provides fun provideUserDao(db: AppDatabase): UserDao = db.userDao()
+    @Provides fun provideAchievementDao(db: AppDatabase): AchievementDao = db.achievementDao()
 }
