@@ -27,12 +27,12 @@ class AuthRepository @Inject constructor(
         identityStatement: String
     ): Result<Unit> = runCatching {
         val res = authApi.register(RegisterRequest(email, password, displayName, identityStatement))
-        onAuthSuccess(res.userId, res.token, email, displayName, identityStatement)
+        onAuthSuccess(res.userId, res.token, res.refreshToken, email, displayName, identityStatement)
     }
 
     suspend fun login(email: String, password: String): Result<Unit> = runCatching {
         val res = authApi.login(LoginRequest(email, password))
-        onAuthSuccess(res.userId, res.token, email, res.displayName ?: email, null)
+        onAuthSuccess(res.userId, res.token, res.refreshToken, email, res.displayName ?: email, null)
     }
 
     suspend fun logout() {
@@ -43,11 +43,12 @@ class AuthRepository @Inject constructor(
     private suspend fun onAuthSuccess(
         userId: String,
         token: String,
+        refreshToken: String,
         email: String,
         displayName: String,
         identityStatement: String?
     ) {
-        sessionManager.saveSession(token, userId)
+        sessionManager.saveSession(token, refreshToken, userId)
         userDao.upsert(UserEntity(userId, email, displayName, identityStatement, System.currentTimeMillis()))
         habitDao.reassignOwner(SessionManager.LOCAL_USER_ID, userId)
     }

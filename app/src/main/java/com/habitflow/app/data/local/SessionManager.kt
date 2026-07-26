@@ -21,6 +21,7 @@ class SessionManager @Inject constructor(@ApplicationContext context: Context) {
     companion object {
         const val LOCAL_USER_ID = "local-user"
         private const val KEY_TOKEN = "token"
+        private const val KEY_REFRESH_TOKEN = "refresh_token"
         private const val KEY_USER_ID = "user_id"
         private const val KEY_LAST_SYNC = "last_sync_time"
     }
@@ -34,6 +35,7 @@ class SessionManager @Inject constructor(@ApplicationContext context: Context) {
     )
 
     val token: String? get() = prefs.getString(KEY_TOKEN, null)
+    val refreshToken: String? get() = prefs.getString(KEY_REFRESH_TOKEN, null)
     val isLoggedIn: Boolean get() = token != null
 
     private val _userIdFlow = MutableStateFlow(prefs.getString(KEY_USER_ID, LOCAL_USER_ID) ?: LOCAL_USER_ID)
@@ -44,15 +46,24 @@ class SessionManager @Inject constructor(@ApplicationContext context: Context) {
         get() = prefs.getLong(KEY_LAST_SYNC, 0L)
         set(value) { prefs.edit().putLong(KEY_LAST_SYNC, value).apply() }
 
-    fun saveSession(token: String, userId: String) {
+    fun saveSession(token: String, refreshToken: String, userId: String) {
         prefs.edit()
             .putString(KEY_TOKEN, token)
+            .putString(KEY_REFRESH_TOKEN, refreshToken)
             .putString(KEY_USER_ID, userId)
             .apply()
         _userIdFlow.value = userId
     }
 
+    /** Posle uspešnog obnavljanja tokena — samo tokeni, userId se ne dira. */
+    fun updateTokens(token: String, refreshToken: String) {
+        prefs.edit()
+            .putString(KEY_TOKEN, token)
+            .putString(KEY_REFRESH_TOKEN, refreshToken)
+            .apply()
+    }
+
     fun clearToken() {
-        prefs.edit().remove(KEY_TOKEN).apply()
+        prefs.edit().remove(KEY_TOKEN).remove(KEY_REFRESH_TOKEN).apply()
     }
 }
