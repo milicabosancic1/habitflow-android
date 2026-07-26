@@ -12,6 +12,8 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.habitflow.app.achievement.AchievementWorker
 import com.habitflow.app.recommendation.RecommendationWorker
+import com.habitflow.app.reminder.ReminderNotificationHelper
+import com.habitflow.app.reminder.ReminderSchedulerWorker
 import com.habitflow.app.sync.SyncWorker
 import dagger.hilt.android.HiltAndroidApp
 import java.util.concurrent.TimeUnit
@@ -31,9 +33,11 @@ class HabitFlowApp : Application(), Configuration.Provider {
     override fun onCreate() {
         super.onCreate()
         WorkManager.initialize(this, workManagerConfiguration)
+        ReminderNotificationHelper.createChannel(this)
         scheduleSync()
         scheduleRecommendations()
         scheduleAchievements()
+        scheduleReminders()
     }
 
     private fun scheduleSync() {
@@ -82,6 +86,21 @@ class HabitFlowApp : Application(), Configuration.Provider {
             "achievements-periodic",
             ExistingPeriodicWorkPolicy.KEEP,
             PeriodicWorkRequestBuilder<AchievementWorker>(24, TimeUnit.HOURS).build()
+        )
+    }
+
+    private fun scheduleReminders() {
+        val workManager = WorkManager.getInstance(this)
+
+        workManager.enqueueUniqueWork(
+            "reminders-on-launch",
+            ExistingWorkPolicy.KEEP,
+            OneTimeWorkRequestBuilder<ReminderSchedulerWorker>().build()
+        )
+        workManager.enqueueUniquePeriodicWork(
+            "reminders-periodic",
+            ExistingPeriodicWorkPolicy.KEEP,
+            PeriodicWorkRequestBuilder<ReminderSchedulerWorker>(6, TimeUnit.HOURS).build()
         )
     }
 }
