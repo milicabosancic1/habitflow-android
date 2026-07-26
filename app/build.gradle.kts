@@ -90,4 +90,7 @@ dependencies {
 
     // Security (Faza 4 - čuvanje JWT tokena)
     implementation(libs.androidx.security.crypto)
+
+    // Vico (grafikoni statistike - Faza 6)
+    implementation(libs.vico.compose.m3)
 }
