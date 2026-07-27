@@ -93,4 +93,11 @@ dependencies {
 
     // Vico (grafikoni statistike - Faza 6)
     implementation(libs.vico.compose.m3)
+
+    // Testovi (Faza 7)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.room.testing)
 }
