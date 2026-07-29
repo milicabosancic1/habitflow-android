@@ -21,4 +21,7 @@ class Converters {
 
     @TypeConverter fun achType(v: AchievementType) = v.name
     @TypeConverter fun toAchType(v: String) = AchievementType.valueOf(v)
+
+    @TypeConverter fun trackingType(v: TrackingType) = v.name
+    @TypeConverter fun toTrackingType(v: String) = TrackingType.valueOf(v)
 }

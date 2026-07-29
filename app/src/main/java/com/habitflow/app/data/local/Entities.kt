@@ -21,7 +21,10 @@ data class HabitEntity(
     val isArchived: Boolean = false,
     val createdAt: Long,
     val updatedAt: Long,
-    val syncStatus: SyncStatus = SyncStatus.PENDING
+    val syncStatus: SyncStatus = SyncStatus.PENDING,
+    val trackingType: TrackingType = TrackingType.SIMPLE,
+    val unit: String? = null,
+    val incrementAmount: Int? = null
 )
 
 @Entity(

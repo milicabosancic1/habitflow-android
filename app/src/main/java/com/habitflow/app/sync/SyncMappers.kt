@@ -5,6 +5,7 @@ import com.habitflow.app.data.local.HabitEntryEntity
 import com.habitflow.app.data.remote.HabitDto
 import com.habitflow.app.data.remote.HabitEntryDto
 import com.habitflow.app.domain.SyncStatus
+import com.habitflow.app.domain.TrackingType
 
 fun HabitEntity.toDto() = HabitDto(
     id = id,
@@ -19,7 +20,10 @@ fun HabitEntity.toDto() = HabitDto(
     stackedAfterHabitId = stackedAfterHabitId,
     isArchived = isArchived,
     createdAt = createdAt,
-    updatedAt = updatedAt
+    updatedAt = updatedAt,
+    trackingType = trackingType,
+    unit = unit,
+    incrementAmount = incrementAmount
 )
 
 fun HabitDto.toEntity(userId: String) = HabitEntity(
@@ -37,7 +41,10 @@ fun HabitDto.toEntity(userId: String) = HabitEntity(
     isArchived = isArchived,
     createdAt = createdAt,
     updatedAt = updatedAt,
-    syncStatus = SyncStatus.SYNCED
+    syncStatus = SyncStatus.SYNCED,
+    trackingType = trackingType ?: TrackingType.SIMPLE,
+    unit = unit,
+    incrementAmount = incrementAmount
 )
 
 fun HabitEntryEntity.toDto() = HabitEntryDto(

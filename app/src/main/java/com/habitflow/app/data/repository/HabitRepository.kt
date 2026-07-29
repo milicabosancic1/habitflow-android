@@ -44,7 +44,10 @@ class HabitRepository @Inject constructor(
         targetCount: Int = 1,
         reminderTime: String? = null,
         cueText: String? = null,
-        stackedAfterHabitId: String? = null
+        stackedAfterHabitId: String? = null,
+        trackingType: TrackingType = TrackingType.SIMPLE,
+        unit: String? = null,
+        incrementAmount: Int? = null
     ) {
         val now = System.currentTimeMillis()
         habitDao.upsert(
@@ -62,7 +65,10 @@ class HabitRepository @Inject constructor(
                 stackedAfterHabitId = stackedAfterHabitId,
                 createdAt = now,
                 updatedAt = now,
-                syncStatus = SyncStatus.PENDING
+                syncStatus = SyncStatus.PENDING,
+                trackingType = trackingType,
+                unit = unit,
+                incrementAmount = incrementAmount
             )
         )
     }
@@ -109,6 +115,24 @@ class HabitRepository @Inject constructor(
                 )
             )
         }
+    }
+
+    /** Upisuje apsolutnu vrednost (količina/broj) za dati datum; status se izvodi iz cilja navike. */
+    suspend fun logValue(habitId: String, date: String = DateUtils.today(), value: Int) {
+        val habit = habitDao.getById(habitId) ?: return
+        val existing = entryDao.getForHabitAndDate(habitId, date)
+        val status = QuantityStatus.statusFor(value, habit.targetCount)
+        entryDao.upsert(
+            HabitEntryEntity(
+                id = existing?.id ?: UUID.randomUUID().toString(),
+                habitId = habitId,
+                date = date,
+                status = status,
+                value = value.coerceAtLeast(0),
+                updatedAt = System.currentTimeMillis(),
+                syncStatus = SyncStatus.PENDING
+            )
+        )
     }
 
     suspend fun getDoneDates(habitId: String): Set<String> =

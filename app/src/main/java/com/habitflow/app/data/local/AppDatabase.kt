@@ -14,7 +14,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         AchievementEntity::class,
         UserEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -39,5 +39,13 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
 val MIGRATION_2_3 = object : Migration(2, 3) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE recommendations ADD COLUMN category TEXT")
+    }
+}
+
+val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE habits ADD COLUMN trackingType TEXT NOT NULL DEFAULT 'SIMPLE'")
+        db.execSQL("ALTER TABLE habits ADD COLUMN unit TEXT")
+        db.execSQL("ALTER TABLE habits ADD COLUMN incrementAmount INTEGER")
     }
 }

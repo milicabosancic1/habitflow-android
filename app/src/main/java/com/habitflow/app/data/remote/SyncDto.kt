@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName
 import com.habitflow.app.domain.EntryStatus
 import com.habitflow.app.domain.FrequencyType
 import com.habitflow.app.domain.HabitType
+import com.habitflow.app.domain.TrackingType
 
 data class HabitDto(
     val id: String,
@@ -19,7 +20,11 @@ data class HabitDto(
     // Backend (Jackson) serijalizuje boolean getter isArchived() kao JSON ključ "archived".
     @SerializedName("archived") val isArchived: Boolean,
     val createdAt: Long,
-    val updatedAt: Long
+    val updatedAt: Long,
+    // Nullable — stariji/backend odgovori mogu ne sadržati ova polja; ne srušiti se, samo pasti na SIMPLE.
+    val trackingType: TrackingType? = null,
+    val unit: String? = null,
+    val incrementAmount: Int? = null
 )
 
 data class HabitEntryDto(
