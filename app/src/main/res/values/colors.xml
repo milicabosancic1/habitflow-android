@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Ista vrednost kao WarmBackground u ui/theme/Color.kt -->
+    <color name="splash_background">#FBF9F5</color>
+</resources>

@@ -94,6 +94,9 @@ dependencies {
     // Vico (grafikoni statistike - Faza 6)
     implementation(libs.vico.compose.m3)
 
+    // Splash ekran (Faza 7 - poliranje)
+    implementation(libs.androidx.splashscreen)
+
     // Testovi (Faza 7)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
