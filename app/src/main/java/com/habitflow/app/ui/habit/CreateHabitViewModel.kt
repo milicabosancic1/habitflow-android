@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.habitflow.app.data.repository.HabitRepository
 import com.habitflow.app.domain.FrequencyType
 import com.habitflow.app.domain.HabitType
+import com.habitflow.app.domain.TrackingType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,6 +23,9 @@ class CreateHabitViewModel @Inject constructor(
         targetCount: Int,
         reminderTime: String?,
         cueText: String?,
+        trackingType: TrackingType = TrackingType.SIMPLE,
+        unit: String? = null,
+        incrementAmount: Int? = null,
         onSaved: () -> Unit
     ) {
         if (name.isBlank()) return
@@ -33,7 +37,10 @@ class CreateHabitViewModel @Inject constructor(
                 frequencyType = frequencyType,
                 targetCount = targetCount,
                 reminderTime = reminderTime?.ifBlank { null },
-                cueText = cueText?.ifBlank { null }
+                cueText = cueText?.ifBlank { null },
+                trackingType = trackingType,
+                unit = unit?.ifBlank { null },
+                incrementAmount = incrementAmount
             )
             onSaved()
         }

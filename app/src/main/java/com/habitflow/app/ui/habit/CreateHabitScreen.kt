@@ -1,6 +1,8 @@
 package com.habitflow.app.ui.habit
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -12,6 +14,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.habitflow.app.domain.FrequencyType
 import com.habitflow.app.domain.HabitType
+import com.habitflow.app.domain.SUGGESTED_HABITS
+import com.habitflow.app.domain.TrackingType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,6 +30,9 @@ fun CreateHabitScreen(
     var targetText by remember { mutableStateOf("1") }
     var reminder by remember { mutableStateOf("") }
     var cue by remember { mutableStateOf("") }
+    var trackingType by remember { mutableStateOf(TrackingType.SIMPLE) }
+    var unit by remember { mutableStateOf("") }
+    var incrementText by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -46,6 +53,26 @@ fun CreateHabitScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Column {
+                Text("Predlozi", style = MaterialTheme.typography.labelLarge)
+                Spacer(Modifier.height(8.dp))
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(SUGGESTED_HABITS) { suggestion ->
+                        AssistChip(
+                            onClick = {
+                                name = suggestion.name
+                                category = suggestion.category
+                                trackingType = suggestion.trackingType
+                                unit = suggestion.unit.orEmpty()
+                                incrementText = suggestion.incrementAmount?.toString().orEmpty()
+                                targetText = suggestion.targetCount.toString()
+                            },
+                            label = { Text(suggestion.name) }
+                        )
+                    }
+                }
+            }
+
             OutlinedTextField(
                 value = name, onValueChange = { name = it },
                 label = { Text("Naziv navike") },
@@ -90,11 +117,45 @@ fun CreateHabitScreen(
                 }
             }
 
-            OutlinedTextField(
-                value = targetText, onValueChange = { targetText = it.filter { c -> c.isDigit() } },
-                label = { Text("Ciljna vrednost") },
-                modifier = Modifier.fillMaxWidth()
-            )
+            Text("Način praćenja", style = MaterialTheme.typography.labelLarge)
+            SingleChoiceSegmentedButtonRow {
+                SegmentedButton(
+                    selected = trackingType == TrackingType.SIMPLE,
+                    onClick = { trackingType = TrackingType.SIMPLE },
+                    shape = SegmentedButtonDefaults.itemShape(0, 3)
+                ) { Text("Da/Ne") }
+                SegmentedButton(
+                    selected = trackingType == TrackingType.QUANTITY,
+                    onClick = { trackingType = TrackingType.QUANTITY },
+                    shape = SegmentedButtonDefaults.itemShape(1, 3)
+                ) { Text("Količina") }
+                SegmentedButton(
+                    selected = trackingType == TrackingType.NUMERIC,
+                    onClick = { trackingType = TrackingType.NUMERIC },
+                    shape = SegmentedButtonDefaults.itemShape(2, 3)
+                ) { Text("Broj") }
+            }
+
+            if (trackingType != TrackingType.SIMPLE) {
+                OutlinedTextField(
+                    value = unit, onValueChange = { unit = it },
+                    label = { Text("Jedinica (npr. ml, koraka)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = targetText, onValueChange = { targetText = it.filter { c -> c.isDigit() } },
+                    label = { Text("Dnevni cilj") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (trackingType == TrackingType.QUANTITY) {
+                    OutlinedTextField(
+                        value = incrementText, onValueChange = { incrementText = it.filter { c -> c.isDigit() } },
+                        label = { Text("Iznos po kliku") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+
             OutlinedTextField(
                 value = reminder, onValueChange = { reminder = it },
                 label = { Text("Podsetnik (HH:mm, opciono)") },
@@ -113,9 +174,12 @@ fun CreateHabitScreen(
                         category = category,
                         type = type,
                         frequencyType = frequency,
-                        targetCount = targetText.toIntOrNull() ?: 1,
+                        targetCount = if (trackingType == TrackingType.SIMPLE) 1 else (targetText.toIntOrNull() ?: 1),
                         reminderTime = reminder,
                         cueText = cue,
+                        trackingType = trackingType,
+                        unit = if (trackingType == TrackingType.SIMPLE) null else unit,
+                        incrementAmount = if (trackingType == TrackingType.QUANTITY) incrementText.toIntOrNull() else null,
                         onSaved = onDone
                     )
                 },
