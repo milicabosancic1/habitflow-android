@@ -15,11 +15,9 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ChevronLeft
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,8 +28,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.habitflow.app.data.local.HabitEntity
+import com.habitflow.app.data.local.HabitEntryEntity
 import com.habitflow.app.domain.DateUtils
+import com.habitflow.app.domain.EntryStatus
 import com.habitflow.app.domain.GreetingHelper
+import com.habitflow.app.domain.TrackingType
 import com.habitflow.app.ui.common.DayProgressRing
 import com.habitflow.app.ui.common.EmptyState
 import com.habitflow.app.ui.common.RecommendationCard
@@ -127,8 +128,9 @@ fun HomeScreen(
                 items(state.habits, key = { it.id }) { habit ->
                     HabitCard(
                         habit = habit,
-                        done = state.doneHabitIds.contains(habit.id),
+                        entry = state.entriesById[habit.id],
                         onToggle = { viewModel.toggleDone(habit.id) },
+                        onLogValue = { value -> viewModel.logValue(habit.id, value) },
                         onClick = { onOpenHabit(habit.id) }
                     )
                 }
@@ -215,12 +217,24 @@ private fun WeekStrip(selectedDate: String, onSelectDate: (String) -> Unit) {
 @Composable
 private fun HabitCard(
     habit: HabitEntity,
-    done: Boolean,
+    entry: HabitEntryEntity?,
     onToggle: () -> Unit,
+    onLogValue: (Int) -> Unit,
     onClick: () -> Unit
 ) {
+    val done = entry?.status == EntryStatus.DONE
     val cardScale = remember { Animatable(1f) }
     val scope = rememberCoroutineScope()
+    var wasDone by remember { mutableStateOf(done) }
+
+    LaunchedEffect(done) {
+        if (done && !wasDone) {
+            // kartica blago pulsira pri završavanju navike
+            cardScale.animateTo(1.03f, tween(150))
+            cardScale.animateTo(1f, tween(150))
+        }
+        wasDone = done
+    }
 
     Card(
         onClick = onClick,
@@ -255,20 +269,21 @@ private fun HabitCard(
                     label = { Text(habit.category) }
                 )
             }
-            HabitCheckToggle(
-                done = done,
-                onToggle = {
-                    val justCompleted = !done
-                    onToggle()
-                    if (justCompleted) {
-                        scope.launch {
-                            // kartica blago pulsira pri završavanju navike
-                            cardScale.animateTo(1.03f, tween(150))
-                            cardScale.animateTo(1f, tween(150))
-                        }
-                    }
-                }
-            )
+            when (habit.trackingType) {
+                TrackingType.SIMPLE -> HabitCheckToggle(done = done, onToggle = onToggle)
+                TrackingType.QUANTITY -> HabitQuantityControl(
+                    value = entry?.value ?: 0,
+                    target = habit.targetCount,
+                    unit = habit.unit,
+                    onIncrement = { onLogValue((entry?.value ?: 0) + (habit.incrementAmount ?: 1)) }
+                )
+                TrackingType.NUMERIC -> HabitNumericControl(
+                    value = entry?.value ?: 0,
+                    target = habit.targetCount,
+                    unit = habit.unit,
+                    onSetValue = onLogValue
+                )
+            }
         }
     }
 }
@@ -319,3 +334,94 @@ private fun HabitCheckToggle(done: Boolean, onToggle: () -> Unit) {
         }
     }
 }
+
+/** Krug koji na svaki tap dodaje fiksan iznos (npr. +250ml), sa prikazom "{value}/{target} {unit}". */
+@Composable
+private fun HabitQuantityControl(value: Int, target: Int, unit: String?, onIncrement: () -> Unit) {
+    val done = value >= target
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(42.dp)
+                .clip(CircleShape)
+                .then(
+                    if (done) {
+                        Modifier.background(MaterialTheme.colorScheme.primary)
+                    } else {
+                        Modifier.border(2.5.dp, MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                    }
+                )
+                .clickable(onClick = onIncrement),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                if (done) Icons.Rounded.Check else Icons.Rounded.Add,
+                contentDescription = if (done) "Završeno" else "Dodaj",
+                tint = if (done) Color.White else MaterialTheme.colorScheme.primary
+            )
+        }
+        Spacer(Modifier.height(4.dp))
+        Text(quantityLabel(value, target, unit), style = MaterialTheme.typography.labelSmall)
+    }
+}
+
+/** Krug koji tapom otvara dijalog za ručni unos broja (npr. koraci), sa istim prikazom napretka. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HabitNumericControl(value: Int, target: Int, unit: String?, onSetValue: (Int) -> Unit) {
+    var showDialog by remember { mutableStateOf(false) }
+    val done = value >= target
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(42.dp)
+                .clip(CircleShape)
+                .then(
+                    if (done) {
+                        Modifier.background(MaterialTheme.colorScheme.primary)
+                    } else {
+                        Modifier.border(2.5.dp, MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                    }
+                )
+                .clickable { showDialog = true },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                if (done) Icons.Rounded.Check else Icons.Rounded.Edit,
+                contentDescription = if (done) "Završeno" else "Unesi broj",
+                tint = if (done) Color.White else MaterialTheme.colorScheme.primary
+            )
+        }
+        Spacer(Modifier.height(4.dp))
+        Text(quantityLabel(value, target, unit), style = MaterialTheme.typography.labelSmall)
+    }
+
+    if (showDialog) {
+        var text by remember { mutableStateOf(if (value > 0) value.toString() else "") }
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Unesi vrednost") },
+            text = {
+                OutlinedTextField(
+                    value = text,
+                    onValueChange = { text = it.filter { c -> c.isDigit() } },
+                    label = { Text(unit ?: "Vrednost") },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    text.toIntOrNull()?.let(onSetValue)
+                    showDialog = false
+                }) { Text("Sačuvaj") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) { Text("Otkaži") }
+            }
+        )
+    }
+}
+
+private fun quantityLabel(value: Int, target: Int, unit: String?): String =
+    if (unit.isNullOrBlank()) "$value/$target" else "$value/$target $unit"

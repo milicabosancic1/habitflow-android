@@ -3,6 +3,7 @@ package com.habitflow.app.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.habitflow.app.data.local.HabitEntity
+import com.habitflow.app.data.local.HabitEntryEntity
 import com.habitflow.app.data.local.RecommendationEntity
 import com.habitflow.app.data.local.SessionManager
 import com.habitflow.app.data.repository.AuthRepository
@@ -20,13 +21,13 @@ import javax.inject.Inject
 data class HomeUiState(
     val selectedDate: String = DateUtils.today(),
     val habits: List<HabitEntity> = emptyList(),
-    val doneHabitIds: Set<String> = emptySet(),
+    val entriesById: Map<String, HabitEntryEntity> = emptyMap(),
     val topRecommendation: RecommendationEntity? = null,
     val displayName: String? = null,
     val subtitle: String = "Male navike, velike promene.",
     val loading: Boolean = true
 ) {
-    val completedCount: Int get() = habits.count { doneHabitIds.contains(it.id) }
+    val completedCount: Int get() = habits.count { entriesById[it.id]?.status == EntryStatus.DONE }
     val totalCount: Int get() = habits.size
     val progress: Float get() = if (totalCount == 0) 0f else completedCount.toFloat() / totalCount
     val isToday: Boolean get() = selectedDate == DateUtils.today()
@@ -55,15 +56,12 @@ class HomeViewModel @Inject constructor(
             _selectedDate,
             authRepository.observeCurrentUser()
         ) { habits, entries, recommendations, date, user ->
-            val doneIds = entries
-                .filter { it.status == EntryStatus.DONE }
-                .map { it.habitId }
-                .toSet()
+            val entriesById = entries.associateBy { it.habitId }
             val identityStatement = sessionManager.identityStatement
             HomeUiState(
                 selectedDate = date,
                 habits = habits,
-                doneHabitIds = doneIds,
+                entriesById = entriesById,
                 topRecommendation = RecommendationPriority.sorted(recommendations).firstOrNull(),
                 displayName = user?.displayName,
                 subtitle = if (identityStatement.isNullOrBlank()) {
@@ -86,6 +84,12 @@ class HomeViewModel @Inject constructor(
     fun toggleDone(habitId: String) {
         viewModelScope.launch {
             repository.toggleDone(habitId, date = _selectedDate.value)
+        }
+    }
+
+    fun logValue(habitId: String, value: Int) {
+        viewModelScope.launch {
+            repository.logValue(habitId, date = _selectedDate.value, value = value)
         }
     }
 
