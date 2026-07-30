@@ -8,11 +8,15 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.habitflow.app.data.remote.GoogleAuthClient
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,6 +91,24 @@ fun RegisterScreen(
                     Text("Registruj se")
                 }
             }
+
+            Spacer(Modifier.height(8.dp))
+            HorizontalDivider()
+            Spacer(Modifier.height(8.dp))
+
+            val context = LocalContext.current
+            val scope = rememberCoroutineScope()
+            OutlinedButton(
+                onClick = {
+                    scope.launch {
+                        runCatching { GoogleAuthClient().signIn(context) }
+                            .onSuccess { r -> viewModel.loginWithGoogle(r.idToken, r.email, r.displayName, onRegistered) }
+                            .onFailure { viewModel.onGoogleSignInFailed() }
+                    }
+                },
+                enabled = !state.loading,
+                modifier = Modifier.fillMaxWidth()
+            ) { Text("Nastavi sa Google nalogom") }
         }
     }
 }

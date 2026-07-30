@@ -5,6 +5,7 @@ import com.habitflow.app.data.local.SessionManager
 import com.habitflow.app.data.local.UserDao
 import com.habitflow.app.data.local.UserEntity
 import com.habitflow.app.data.remote.AuthApi
+import com.habitflow.app.data.remote.GoogleAuthRequest
 import com.habitflow.app.data.remote.LoginRequest
 import com.habitflow.app.data.remote.RegisterRequest
 import kotlinx.coroutines.flow.Flow
@@ -33,6 +34,11 @@ class AuthRepository @Inject constructor(
     suspend fun login(email: String, password: String): Result<Unit> = runCatching {
         val res = authApi.login(LoginRequest(email, password))
         onAuthSuccess(res.userId, res.token, res.refreshToken, email, res.displayName ?: email, null)
+    }
+
+    suspend fun loginWithGoogle(idToken: String, email: String, displayName: String): Result<Unit> = runCatching {
+        val res = authApi.googleAuth(GoogleAuthRequest(idToken))
+        onAuthSuccess(res.userId, res.token, res.refreshToken, email, res.displayName ?: displayName, null)
     }
 
     suspend fun logout() {

@@ -21,6 +21,8 @@ android {
 
         // Bazna adresa backend-a. 10.0.2.2 = localhost sa Android emulatora.
         buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8080/\"")
+        // Google OAuth Web Client ID (Google Cloud Console) - koristi se za Credential Manager.
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"485435476146-vr7aj1st6jlej7735m90kk6ofnj4m0r5.apps.googleusercontent.com\"")
     }
 
     buildTypes {
@@ -96,6 +98,11 @@ dependencies {
 
     // Splash ekran (Faza 7 - poliranje)
     implementation(libs.androidx.splashscreen)
+
+    // Google prijava (Credential Manager)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
 
     // Testovi (Faza 7)
     testImplementation(libs.junit)

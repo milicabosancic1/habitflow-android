@@ -52,4 +52,22 @@ class RegisterViewModel @Inject constructor(
             }
         }
     }
+
+    fun loginWithGoogle(idToken: String, email: String, displayName: String, onSuccess: () -> Unit) {
+        _uiState.update { it.copy(loading = true, error = null) }
+        viewModelScope.launch {
+            authRepository.loginWithGoogle(idToken, email, displayName)
+                .onSuccess {
+                    _uiState.update { it.copy(loading = false) }
+                    onSuccess()
+                }
+                .onFailure {
+                    _uiState.update { it.copy(loading = false, error = "Greška, pokušaj ponovo.") }
+                }
+        }
+    }
+
+    fun onGoogleSignInFailed() {
+        _uiState.update { it.copy(loading = false, error = "Google prijava nije uspela.") }
+    }
 }
