@@ -24,7 +24,8 @@ data class HabitDto(
     // Nullable — stariji/backend odgovori mogu ne sadržati ova polja; ne srušiti se, samo pasti na SIMPLE.
     val trackingType: TrackingType? = null,
     val unit: String? = null,
-    val incrementAmount: Int? = null
+    val incrementAmount: Int? = null,
+    val color: String? = null
 )
 
 data class HabitEntryDto(

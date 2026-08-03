@@ -23,7 +23,8 @@ fun HabitEntity.toDto() = HabitDto(
     updatedAt = updatedAt,
     trackingType = trackingType,
     unit = unit,
-    incrementAmount = incrementAmount
+    incrementAmount = incrementAmount,
+    color = color
 )
 
 fun HabitDto.toEntity(userId: String) = HabitEntity(
@@ -44,7 +45,8 @@ fun HabitDto.toEntity(userId: String) = HabitEntity(
     syncStatus = SyncStatus.SYNCED,
     trackingType = trackingType ?: TrackingType.SIMPLE,
     unit = unit,
-    incrementAmount = incrementAmount
+    incrementAmount = incrementAmount,
+    color = color
 )
 
 fun HabitEntryEntity.toDto() = HabitEntryDto(

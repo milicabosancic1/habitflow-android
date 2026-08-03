@@ -24,7 +24,8 @@ data class HabitEntity(
     val syncStatus: SyncStatus = SyncStatus.PENDING,
     val trackingType: TrackingType = TrackingType.SIMPLE,
     val unit: String? = null,
-    val incrementAmount: Int? = null
+    val incrementAmount: Int? = null,
+    val color: String? = null
 )
 
 @Entity(
