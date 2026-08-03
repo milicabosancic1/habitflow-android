@@ -26,6 +26,7 @@ class CreateHabitViewModel @Inject constructor(
         trackingType: TrackingType = TrackingType.SIMPLE,
         unit: String? = null,
         incrementAmount: Int? = null,
+        color: String? = null,
         onSaved: () -> Unit
     ) {
         if (name.isBlank()) return
@@ -40,7 +41,8 @@ class CreateHabitViewModel @Inject constructor(
                 cueText = cueText?.ifBlank { null },
                 trackingType = trackingType,
                 unit = unit?.ifBlank { null },
-                incrementAmount = incrementAmount
+                incrementAmount = incrementAmount,
+                color = color
             )
             onSaved()
         }

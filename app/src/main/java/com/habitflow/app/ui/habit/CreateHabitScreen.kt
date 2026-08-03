@@ -1,18 +1,27 @@
 package com.habitflow.app.ui.habit
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.habitflow.app.domain.FrequencyType
+import com.habitflow.app.domain.HABIT_COLORS
 import com.habitflow.app.domain.HabitType
 import com.habitflow.app.domain.SUGGESTED_HABITS
 import com.habitflow.app.domain.TrackingType
@@ -33,6 +42,7 @@ fun CreateHabitScreen(
     var trackingType by remember { mutableStateOf(TrackingType.SIMPLE) }
     var unit by remember { mutableStateOf("") }
     var incrementText by remember { mutableStateOf("") }
+    var selectedColor by remember { mutableStateOf(HABIT_COLORS[0]) }
 
     Scaffold(
         topBar = {
@@ -66,9 +76,40 @@ fun CreateHabitScreen(
                                 unit = suggestion.unit.orEmpty()
                                 incrementText = suggestion.incrementAmount?.toString().orEmpty()
                                 targetText = suggestion.targetCount.toString()
+                                selectedColor = suggestion.color
                             },
                             label = { Text(suggestion.name) }
                         )
+                    }
+                }
+            }
+
+            Column {
+                Text("Boja", style = MaterialTheme.typography.labelLarge)
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    HABIT_COLORS.forEach { hex ->
+                        val color = remember(hex) { Color(android.graphics.Color.parseColor(hex)) }
+                        val isSelected = hex == selectedColor
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(color)
+                                .then(
+                                    if (isSelected) {
+                                        Modifier.border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
+                                    } else {
+                                        Modifier
+                                    }
+                                )
+                                .clickable { selectedColor = hex },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (isSelected) {
+                                Icon(Icons.Rounded.Check, contentDescription = "Izabrano", tint = Color.White)
+                            }
+                        }
                     }
                 }
             }
@@ -180,6 +221,7 @@ fun CreateHabitScreen(
                         trackingType = trackingType,
                         unit = if (trackingType == TrackingType.SIMPLE) null else unit,
                         incrementAmount = if (trackingType == TrackingType.QUANTITY) incrementText.toIntOrNull() else null,
+                        color = selectedColor,
                         onSaved = onDone
                     )
                 },
