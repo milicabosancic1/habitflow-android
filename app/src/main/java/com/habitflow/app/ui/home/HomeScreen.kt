@@ -22,9 +22,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -216,6 +218,9 @@ private fun WeekStrip(selectedDate: String, onSelectDate: (String) -> Unit) {
     }
 }
 
+/** Fiksna tamna boja teksta na obojenim karticama — čitljiva bez obzira na svetlu/tamnu temu. */
+private val HabitCardTextColor = Color(0xFF2A2A2A)
+
 @Composable
 private fun HabitCard(
     habit: HabitEntity,
@@ -226,7 +231,6 @@ private fun HabitCard(
 ) {
     val done = entry?.status == EntryStatus.DONE
     val cardScale = remember { Animatable(1f) }
-    val scope = rememberCoroutineScope()
     var wasDone by remember { mutableStateOf(done) }
 
     LaunchedEffect(done) {
@@ -238,80 +242,79 @@ private fun HabitCard(
         wasDone = done
     }
 
+    val fraction = when (habit.trackingType) {
+        TrackingType.SIMPLE -> if (done) 1f else 0f
+        else -> {
+            val target = habit.targetCount
+            if (target <= 0) 0f else ((entry?.value ?: 0).toFloat() / target).coerceIn(0f, 1f)
+        }
+    }
+    val animatedFraction by animateFloatAsState(targetValue = fraction, animationSpec = tween(400), label = "cardFill")
+
+    val habitColor = remember(habit.color) {
+        habit.color?.let { runCatching { Color(android.graphics.Color.parseColor(it)) }.getOrNull() }
+    }
+    val surface = MaterialTheme.colorScheme.surface
+    // Mešano uvek ka beloj (ne ka surface boji teme) — inače u tamnoj temi osnovna boja postane
+    // previše tamna i fiksni tamni tekst postaje nečitljiv.
+    val baseColor = if (habitColor != null) lerp(habitColor, Color.White, 0.7f) else surface
+    val defaultTextColor = if (done) {
+        MaterialTheme.colorScheme.secondary.copy(alpha = 0.85f)
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+    val nameColor = if (habitColor != null) HabitCardTextColor else defaultTextColor
+    val categoryColor = if (habitColor != null) {
+        HabitCardTextColor.copy(alpha = 0.65f)
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
     Card(
         onClick = onClick,
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
+        colors = CardDefaults.cardColors(containerColor = baseColor),
         modifier = Modifier.graphicsLayer {
             scaleX = cardScale.value
             scaleY = cardScale.value
         }
     ) {
-        Column {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        habit.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = if (done) {
-                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.85f)
-                        } else {
-                            MaterialTheme.colorScheme.onSurface
-                        }
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    AssistChip(
-                        onClick = {},
-                        label = { Text(habit.category) }
-                    )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .drawBehind {
+                    if (habitColor != null) {
+                        drawRect(
+                            color = habitColor,
+                            size = Size(size.width * animatedFraction, size.height)
+                        )
+                    }
                 }
-                when (habit.trackingType) {
-                    TrackingType.SIMPLE -> HabitCheckToggle(done = done, onToggle = onToggle)
-                    TrackingType.QUANTITY -> HabitQuantityControl(
-                        value = entry?.value ?: 0,
-                        target = habit.targetCount,
-                        unit = habit.unit,
-                        onIncrement = { onLogValue((entry?.value ?: 0) + (habit.incrementAmount ?: 1)) }
-                    )
-                    TrackingType.NUMERIC -> HabitNumericControl(
-                        value = entry?.value ?: 0,
-                        target = habit.targetCount,
-                        unit = habit.unit,
-                        onSetValue = onLogValue
-                    )
-                }
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text(habit.name, style = MaterialTheme.typography.titleMedium, color = nameColor)
+                Spacer(Modifier.height(4.dp))
+                Text(habit.category, style = MaterialTheme.typography.labelSmall, color = categoryColor)
             }
-            if (habit.trackingType != TrackingType.SIMPLE) {
-                HabitFillBar(value = entry?.value ?: 0, target = habit.targetCount)
+            when (habit.trackingType) {
+                TrackingType.SIMPLE -> HabitCheckToggle(done = done, onToggle = onToggle)
+                TrackingType.QUANTITY -> HabitQuantityControl(
+                    value = entry?.value ?: 0,
+                    target = habit.targetCount,
+                    unit = habit.unit,
+                    onIncrement = { onLogValue((entry?.value ?: 0) + (habit.incrementAmount ?: 1)) }
+                )
+                TrackingType.NUMERIC -> HabitNumericControl(
+                    value = entry?.value ?: 0,
+                    target = habit.targetCount,
+                    unit = habit.unit,
+                    onSetValue = onLogValue
+                )
             }
         }
     }
-}
-
-/** Traka napretka na dnu kartice — vizuelno "punjenje" prema dnevnom cilju (količina/broj). */
-@Composable
-private fun HabitFillBar(value: Int, target: Int) {
-    val fraction = if (target <= 0) 0f else (value.toFloat() / target).coerceIn(0f, 1f)
-    val animated by animateFloatAsState(targetValue = fraction, animationSpec = tween(400), label = "fill")
-    val color = if (fraction >= 1f) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary
-
-    LinearProgressIndicator(
-        progress = { animated },
-        color = color,
-        trackColor = MaterialTheme.colorScheme.surfaceVariant,
-        strokeCap = StrokeCap.Round,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(6.dp)
-            .clip(RoundedCornerShape(bottomStart = 20.dp, bottomEnd = 20.dp))
-    )
 }
 
 /**
