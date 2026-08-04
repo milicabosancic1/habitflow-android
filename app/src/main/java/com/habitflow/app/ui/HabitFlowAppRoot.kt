@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BarChart
+import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Today
@@ -21,6 +22,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.habitflow.app.ui.auth.LoginScreen
 import com.habitflow.app.ui.auth.RegisterScreen
+import com.habitflow.app.ui.calendar.CalendarScreen
 import com.habitflow.app.ui.habit.CreateHabitScreen
 import com.habitflow.app.ui.habit.HabitDetailScreen
 import com.habitflow.app.ui.home.HomeScreen
@@ -32,11 +34,12 @@ import com.habitflow.app.ui.stats.StatsScreen
 sealed class Dest(val route: String, val label: String, val icon: ImageVector) {
     data object Home : Dest("home", "Danas", Icons.Rounded.Today)
     data object Stats : Dest("stats", "Statistika", Icons.Rounded.BarChart)
+    data object Calendar : Dest("calendar", "Kalendar", Icons.Rounded.CalendarMonth)
     data object Recs : Dest("recs", "Preporuke", Icons.Rounded.Lightbulb)
     data object Profile : Dest("profile", "Profil", Icons.Rounded.Person)
 }
 
-private val bottomItems = listOf(Dest.Home, Dest.Stats, Dest.Recs, Dest.Profile)
+private val bottomItems = listOf(Dest.Home, Dest.Stats, Dest.Calendar, Dest.Recs, Dest.Profile)
 
 @Composable
 fun HabitFlowAppRoot(gateViewModel: AppGateViewModel = hiltViewModel()) {
@@ -83,6 +86,7 @@ fun HabitFlowAppRoot(gateViewModel: AppGateViewModel = hiltViewModel()) {
                 )
             }
             composable(Dest.Stats.route) { StatsScreen() }
+            composable(Dest.Calendar.route) { CalendarScreen() }
             composable(Dest.Recs.route) { RecommendationsScreen() }
             composable(Dest.Profile.route) {
                 ProfileScreen(

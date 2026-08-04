@@ -2,6 +2,7 @@ package com.habitflow.app.domain
 
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
 object DateUtils {
@@ -10,6 +11,10 @@ object DateUtils {
     private val DAY_LABELS = listOf("Pon", "Uto", "Sre", "Čet", "Pet", "Sub", "Ned") // ponedeljak-prvi
     private val MONTH_GENITIVE = listOf(
         "jan", "feb", "mart", "apr", "maj", "jun", "jul", "avg", "sep", "okt", "nov", "dec"
+    )
+    private val MONTH_NAMES = listOf(
+        "Januar", "Februar", "Mart", "April", "Maj", "Jun",
+        "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"
     )
 
     fun today(): String = LocalDate.now().format(fmt)
@@ -29,4 +34,8 @@ object DateUtils {
     /** npr. "24. jul" — za naslov sekcije kad izabrani dan nije danas. */
     fun displayLabel(date: LocalDate): String =
         "${date.dayOfMonth}. ${MONTH_GENITIVE[date.monthValue - 1]}"
+
+    /** npr. "Avgust 2026" — za naslov meseca na Kalendar ekranu. */
+    fun monthYearLabel(month: YearMonth): String =
+        "${MONTH_NAMES[month.monthValue - 1]} ${month.year}"
 }
