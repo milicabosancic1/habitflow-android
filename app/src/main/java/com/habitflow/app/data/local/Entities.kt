@@ -25,7 +25,8 @@ data class HabitEntity(
     val trackingType: TrackingType = TrackingType.SIMPLE,
     val unit: String? = null,
     val incrementAmount: Int? = null,
-    val color: String? = null
+    val color: String? = null,
+    val weeklyTarget: Int? = null
 )
 
 @Entity(

@@ -8,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Archive
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,7 +19,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.habitflow.app.data.local.HabitEntity
 import com.habitflow.app.domain.DateUtils
+import com.habitflow.app.domain.FrequencyType
+import com.habitflow.app.domain.HabitScheduling
 import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -26,6 +30,7 @@ import java.time.LocalDate
 fun HabitDetailScreen(
     habitId: String,
     onBack: () -> Unit,
+    onEdit: (String) -> Unit,
     viewModel: HabitDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -41,6 +46,9 @@ fun HabitDetailScreen(
                 },
                 actions = {
                     if (state.habit != null) {
+                        IconButton(onClick = { onEdit(habitId) }) {
+                            Icon(Icons.Rounded.Edit, contentDescription = "Izmeni")
+                        }
                         IconButton(onClick = { viewModel.archive(onBack) }) {
                             Icon(Icons.Rounded.Archive, contentDescription = "Arhiviraj")
                         }
@@ -68,12 +76,13 @@ fun HabitDetailScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Kategorija + tip
+            // Kategorija + tip + učestalost
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 AssistChip(onClick = {}, label = { Text(habit.category) })
                 AssistChip(onClick = {}, label = {
                     Text(if (habit.type.name == "BUILD") "Izgradnja" else "Ostavljanje")
                 })
+                AssistChip(onClick = {}, label = { Text(frequencyLabel(habit)) })
             }
 
             // Statistika: tri kartice
@@ -87,6 +96,16 @@ fun HabitDetailScreen(
             Text("Poslednjih 12 nedelja", style = MaterialTheme.typography.titleMedium)
             Heatmap(doneDates = state.doneDates)
 
+            if (state.stackedAfterHabitName != null) {
+                Card(shape = RoundedCornerShape(16.dp)) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text("Habit stacking", style = MaterialTheme.typography.labelMedium)
+                        Spacer(Modifier.height(4.dp))
+                        Text("Nakon: ${state.stackedAfterHabitName}", style = MaterialTheme.typography.bodyLarge)
+                    }
+                }
+            }
+
             if (habit.cueText != null) {
                 Card(shape = RoundedCornerShape(16.dp)) {
                     Column(Modifier.padding(16.dp)) {
@@ -98,6 +117,17 @@ fun HabitDetailScreen(
             }
         }
     }
+}
+
+private val DAY_LETTERS = listOf("Pon", "Uto", "Sre", "Čet", "Pet", "Sub", "Ned")
+
+private fun frequencyLabel(habit: HabitEntity): String = when (habit.frequencyType) {
+    FrequencyType.DAILY -> "Dnevno"
+    FrequencyType.SPECIFIC_DAYS -> {
+        val days = HabitScheduling.parseDays(habit.daysOfWeek).sorted()
+        if (days.isEmpty()) "Dani" else days.joinToString(", ") { DAY_LETTERS[it - 1] }
+    }
+    FrequencyType.TIMES_PER_WEEK -> "${habit.weeklyTarget ?: 1}x nedeljno"
 }
 
 @Composable

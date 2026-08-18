@@ -11,6 +11,7 @@ import com.habitflow.app.data.repository.HabitRepository
 import com.habitflow.app.data.repository.RecommendationRepository
 import com.habitflow.app.domain.DateUtils
 import com.habitflow.app.domain.EntryStatus
+import com.habitflow.app.domain.HabitScheduling
 import com.habitflow.app.recommendation.RecommendationPriority
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -56,11 +57,12 @@ class HomeViewModel @Inject constructor(
             _selectedDate,
             authRepository.observeCurrentUser()
         ) { habits, entries, recommendations, date, user ->
+            val scheduledHabits = habits.filter { HabitScheduling.isScheduledOn(it, DateUtils.parse(date)) }
             val entriesById = entries.associateBy { it.habitId }
             val identityStatement = sessionManager.identityStatement
             HomeUiState(
                 selectedDate = date,
-                habits = habits,
+                habits = scheduledHabits,
                 entriesById = entriesById,
                 topRecommendation = RecommendationPriority.sorted(recommendations).firstOrNull(),
                 displayName = user?.displayName,

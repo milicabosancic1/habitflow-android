@@ -25,7 +25,8 @@ data class HabitDto(
     val trackingType: TrackingType? = null,
     val unit: String? = null,
     val incrementAmount: Int? = null,
-    val color: String? = null
+    val color: String? = null,
+    val weeklyTarget: Int? = null
 )
 
 data class HabitEntryDto(

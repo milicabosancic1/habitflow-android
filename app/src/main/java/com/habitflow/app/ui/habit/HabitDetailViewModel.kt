@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalCoroutinesApi::class)
+
 package com.habitflow.app.ui.habit
 
 import androidx.lifecycle.SavedStateHandle
@@ -7,12 +9,14 @@ import com.habitflow.app.data.local.HabitEntity
 import com.habitflow.app.data.repository.HabitRepository
 import com.habitflow.app.domain.StreakCalculator
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class HabitDetailUiState(
     val habit: HabitEntity? = null,
+    val stackedAfterHabitName: String? = null,
     val doneDates: Set<String> = emptySet(),
     val currentStreak: Int = 0,
     val longestStreak: Int = 0,
@@ -29,22 +33,29 @@ class HabitDetailViewModel @Inject constructor(
     private val habitId: String = savedStateHandle.get<String>("habitId") ?: ""
 
     val uiState: StateFlow<HabitDetailUiState> =
-        combine(
-            repository.observeHabit(habitId),
-            repository.observeEntriesForHabit(habitId)
-        ) { habit, entries ->
-            val doneDates = entries
-                .filter { it.status == com.habitflow.app.domain.EntryStatus.DONE }
-                .map { it.date }
-                .toSet()
-            HabitDetailUiState(
-                habit = habit,
-                doneDates = doneDates,
-                currentStreak = StreakCalculator.currentStreak(doneDates),
-                longestStreak = StreakCalculator.longestStreak(doneDates),
-                totalDone = doneDates.size,
-                loading = false
-            )
+        repository.observeHabit(habitId).flatMapLatest { habit ->
+            val stackedHabitFlow = habit?.stackedAfterHabitId
+                ?.let { repository.observeHabit(it) }
+                ?: flowOf(null)
+
+            combine(
+                repository.observeEntriesForHabit(habitId),
+                stackedHabitFlow
+            ) { entries, stackedHabit ->
+                val doneDates = entries
+                    .filter { it.status == com.habitflow.app.domain.EntryStatus.DONE }
+                    .map { it.date }
+                    .toSet()
+                HabitDetailUiState(
+                    habit = habit,
+                    stackedAfterHabitName = stackedHabit?.name,
+                    doneDates = doneDates,
+                    currentStreak = StreakCalculator.currentStreak(doneDates),
+                    longestStreak = StreakCalculator.longestStreak(doneDates),
+                    totalDone = doneDates.size,
+                    loading = false
+                )
+            }
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),

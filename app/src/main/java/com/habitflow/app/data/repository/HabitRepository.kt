@@ -48,7 +48,8 @@ class HabitRepository @Inject constructor(
         trackingType: TrackingType = TrackingType.SIMPLE,
         unit: String? = null,
         incrementAmount: Int? = null,
-        color: String? = null
+        color: String? = null,
+        weeklyTarget: Int? = null
     ) {
         val now = System.currentTimeMillis()
         habitDao.upsert(
@@ -70,7 +71,8 @@ class HabitRepository @Inject constructor(
                 trackingType = trackingType,
                 unit = unit,
                 incrementAmount = incrementAmount,
-                color = color
+                color = color,
+                weeklyTarget = weeklyTarget
             )
         )
     }

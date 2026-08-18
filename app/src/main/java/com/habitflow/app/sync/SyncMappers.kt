@@ -24,7 +24,8 @@ fun HabitEntity.toDto() = HabitDto(
     trackingType = trackingType,
     unit = unit,
     incrementAmount = incrementAmount,
-    color = color
+    color = color,
+    weeklyTarget = weeklyTarget
 )
 
 fun HabitDto.toEntity(userId: String) = HabitEntity(
@@ -46,7 +47,8 @@ fun HabitDto.toEntity(userId: String) = HabitEntity(
     trackingType = trackingType ?: TrackingType.SIMPLE,
     unit = unit,
     incrementAmount = incrementAmount,
-    color = color
+    color = color,
+    weeklyTarget = weeklyTarget
 )
 
 fun HabitEntryEntity.toDto() = HabitEntryDto(

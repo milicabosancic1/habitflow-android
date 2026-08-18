@@ -64,4 +64,18 @@ class MonthlyCalendarTest {
 
         assertEquals(month.lengthOfMonth(), result.size)
     }
+
+    @Test
+    fun `SPECIFIC_DAYS navika ne racuna se u imenilac dana kad nije zakazana`() {
+        // 2026-08-03 je ponedeljak; h2 zakazana samo sredom (ISO dan 3), pa se ne racuna u ponedeljak.
+        val month = YearMonth.of(2026, 8)
+        val h1 = habit("h1") // DAILY, uradjena
+        val h2 = habit("h2").copy(frequencyType = FrequencyType.SPECIFIC_DAYS, daysOfWeek = "3")
+        val entries = mapOf("h1" to listOf(entry("h1", month.atDay(3), EntryStatus.DONE)))
+
+        val result = MonthlyCalendar.completionByDay(listOf(h1, h2), entries, month)
+
+        // Bez fix-a bi bilo 1/2=0.5 (h2 bi vukla dole iako tog dana nije ni predvidjena).
+        assertEquals(1f, result[month.atDay(3)])
+    }
 }

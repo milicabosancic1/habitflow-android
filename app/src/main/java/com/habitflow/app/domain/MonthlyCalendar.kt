@@ -28,8 +28,9 @@ object MonthlyCalendar {
         val end = month.atEndOfMonth()
         while (!date.isAfter(end)) {
             val dateStr = DateUtils.format(date)
-            val doneCount = habits.count { dateStr in doneDatesByHabit[it.id].orEmpty() }
-            result[date] = if (habits.isEmpty()) 0f else doneCount.toFloat() / habits.size
+            val scheduledHabits = habits.filter { HabitScheduling.isScheduledOn(it, date) }
+            val doneCount = scheduledHabits.count { dateStr in doneDatesByHabit[it.id].orEmpty() }
+            result[date] = if (scheduledHabits.isEmpty()) 0f else doneCount.toFloat() / scheduledHabits.size
             date = date.plusDays(1)
         }
         return result
