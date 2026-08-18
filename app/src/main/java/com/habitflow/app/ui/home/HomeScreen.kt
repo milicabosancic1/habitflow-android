@@ -63,7 +63,9 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(16.dp),
+            // Donji razmak veći od FAB-a (56dp + margina) da poslednja kartica u listi
+            // ne bude prekrivena "+" dugmetom koje lebdi preko sadržaja.
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 96.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
