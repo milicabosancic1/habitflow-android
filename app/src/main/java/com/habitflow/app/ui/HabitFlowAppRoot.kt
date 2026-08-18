@@ -1,5 +1,7 @@
 package com.habitflow.app.ui
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
@@ -9,17 +11,23 @@ import androidx.compose.material.icons.rounded.Lightbulb
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Today
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.habitflow.app.ui.auth.LoginScreen
 import com.habitflow.app.ui.auth.RegisterScreen
 import com.habitflow.app.ui.calendar.CalendarScreen
@@ -28,8 +36,10 @@ import com.habitflow.app.ui.habit.HabitDetailScreen
 import com.habitflow.app.ui.home.HomeScreen
 import com.habitflow.app.ui.onboarding.OnboardingScreen
 import com.habitflow.app.ui.profile.ProfileScreen
+import com.habitflow.app.ui.splash.BrandedSplashScreen
 import com.habitflow.app.ui.stats.RecommendationsScreen
 import com.habitflow.app.ui.stats.StatsScreen
+import kotlinx.coroutines.delay
 
 sealed class Dest(val route: String, val label: String, val icon: ImageVector) {
     data object Home : Dest("home", "Danas", Icons.Rounded.Today)
@@ -43,6 +53,23 @@ private val bottomItems = listOf(Dest.Home, Dest.Stats, Dest.Calendar, Dest.Recs
 
 @Composable
 fun HabitFlowAppRoot(gateViewModel: AppGateViewModel = hiltViewModel()) {
+    var showSplash by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        delay(1600)
+        showSplash = false
+    }
+
+    Crossfade(targetState = showSplash, animationSpec = tween(350), label = "splash") { splash ->
+        if (splash) {
+            BrandedSplashScreen()
+        } else {
+            HabitFlowAppContent(gateViewModel)
+        }
+    }
+}
+
+@Composable
+private fun HabitFlowAppContent(gateViewModel: AppGateViewModel) {
     val hasOnboarded by gateViewModel.hasOnboarded.collectAsStateWithLifecycle()
 
     if (!hasOnboarded) {
@@ -106,13 +133,23 @@ fun HabitFlowAppRoot(gateViewModel: AppGateViewModel = hiltViewModel()) {
                     onRegistered = { navController.popBackStack() }
                 )
             }
-            composable("create") {
+            composable(
+                "create?habitId={habitId}",
+                arguments = listOf(
+                    navArgument("habitId") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    }
+                )
+            ) {
                 CreateHabitScreen(onDone = { navController.popBackStack() })
             }
             composable("detail/{habitId}") { entry ->
                 HabitDetailScreen(
                     habitId = entry.arguments?.getString("habitId") ?: "",
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onEdit = { id -> navController.navigate("create?habitId=$id") }
                 )
             }
         }

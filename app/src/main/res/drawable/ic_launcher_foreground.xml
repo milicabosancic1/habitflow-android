@@ -3,12 +3,16 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Zaobljena kvačica kao simbol završene navike -->
+    <!-- Klica kao simbol rasta/navike koja se gradi (isti motiv kao splash i Home pozdrav) -->
     <path
-        android:fillColor="#E8A87C"
-        android:pathData="M40,70 l-14,-14 a4,4 0 0 1 5.6,-5.6 l8.4,8.4 l22,-22 a4,4 0 0 1 5.6,5.6 l-27.6,27.6 a4,4 0 0 1 -5.6,0 z" />
-    <!-- Tri tačkice kao 'lista navika' -->
+        android:strokeColor="#4C6B54"
+        android:strokeWidth="4.3"
+        android:strokeLineCap="round"
+        android:pathData="M54,67 L54,52" />
     <path
-        android:fillColor="#FBF9F5"
-        android:pathData="M34,44 m-3,0 a3,3 0 1,0 6,0 a3,3 0 1,0 -6,0" />
+        android:fillColor="#4C6B54"
+        android:pathData="M54,59 C43,59 37,50 39,42 C50,44 54,52 54,59 Z" />
+    <path
+        android:fillColor="#4C6B54"
+        android:pathData="M54,54 C65,54 71,46 69,38 C58,40 54,48 54,54 Z" />
 </vector>
