@@ -121,8 +121,10 @@ private fun MonthGrid(month: YearMonth, completionByDay: Map<LocalDate, Float>) 
 private fun DayCell(date: LocalDate, fraction: Float, isToday: Boolean) {
     val trackColor = MaterialTheme.colorScheme.surfaceVariant
     val fillColor = MaterialTheme.colorScheme.primary
-    val backgroundColor = lerp(trackColor, fillColor, fraction)
     val isFuture = date.isAfter(LocalDate.now())
+    // Budući dan nema još nikakav rezultat - ne sme izgledati isto kao dan sa 0% završenosti
+    // (propušten dan), zato ostaje bez ispune, samo obris.
+    val backgroundColor = if (isFuture) Color.Transparent else lerp(trackColor, fillColor, fraction)
 
     Box(
         modifier = Modifier
@@ -130,7 +132,11 @@ private fun DayCell(date: LocalDate, fraction: Float, isToday: Boolean) {
             .clip(CircleShape)
             .background(backgroundColor)
             .then(
-                if (isToday) Modifier.border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape) else Modifier
+                when {
+                    isToday -> Modifier.border(2.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
+                    isFuture -> Modifier.border(1.dp, trackColor, CircleShape)
+                    else -> Modifier
+                }
             ),
         contentAlignment = Alignment.Center
     ) {
