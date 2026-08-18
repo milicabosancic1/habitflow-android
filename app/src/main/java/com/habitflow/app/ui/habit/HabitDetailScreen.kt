@@ -7,7 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Archive
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -34,6 +34,26 @@ fun HabitDetailScreen(
     viewModel: HabitDetailViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+
+    if (showDeleteConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm = false },
+            title = { Text("Obriši naviku?") },
+            text = {
+                Text("„${state.habit?.name}” će biti uklonjena sa liste navika. Istorija ostaje sačuvana.")
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteConfirm = false
+                    viewModel.archive(onBack)
+                }) { Text("Obriši") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm = false }) { Text("Otkaži") }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -49,8 +69,8 @@ fun HabitDetailScreen(
                         IconButton(onClick = { onEdit(habitId) }) {
                             Icon(Icons.Rounded.Edit, contentDescription = "Izmeni")
                         }
-                        IconButton(onClick = { viewModel.archive(onBack) }) {
-                            Icon(Icons.Rounded.Archive, contentDescription = "Arhiviraj")
+                        IconButton(onClick = { showDeleteConfirm = true }) {
+                            Icon(Icons.Rounded.Delete, contentDescription = "Obriši")
                         }
                     }
                 }
